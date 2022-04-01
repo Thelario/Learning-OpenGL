@@ -1,6 +1,13 @@
 # Prerequisites
 *.d
 
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
 # Compiled Object files
 *.slo
 *.lo
@@ -30,3 +37,24 @@
 *.exe
 *.out
 *.app
+
+# Visual C++ cache files
+ipch/
+*.aps
+*.ncb
+*.opendb
+*.opensdf
+*.sdf
+*.cachefile
+*.VC.db
+*.VC.VC.opendb
+
+# Files built by Visual Studio
+*.pdb
+*.ipdb
+
+# Local History for Visual Studio
+.localhistory/
+
+# Visual Studio History (VSHistory) files
+.vshistory/
