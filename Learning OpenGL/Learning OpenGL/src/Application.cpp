@@ -43,6 +43,8 @@ int main(void)
     /* CREATING A VERTEX BUFFER THAT CONTAINS THE DATA TO DRAW A TRIANGLE */
 
     /* These are going to be the vertices of the triangle. */
+    /* Vertices may contain way more data than just the position. */
+    /* When talking about the position, we will be talking about Vertex Position, not only about Vertex. */
     float positions[6] = {
         -0.5f, -0.5f,
          0.0f,  0.5f,
@@ -57,6 +59,21 @@ int main(void)
     /* In this case, we are binding the buffer into GL_ARRAY_BUFFER, which simply means that the */
     /* purpose of the buffer will be of being an array of Vertex Attributes. */
     glBindBuffer(GL_ARRAY_BUFFER, buffer); 
+
+    /* Once we have bound the buffer, we need to tell OpenGL how the layout of the data is going to be. */
+    /* This means whether the vertices are going to be in 2D or in 3D, and how to treat them. */
+
+    /* We first need to enable the Vertex Attribute. */
+    glEnableVertexAttribArray(0);
+
+    /* Then we need to actually create the Vertex Attribute. */
+    /* 1) index */
+    /* 2) size = 2 because we are in 2D, and each vertex will have two floats. */
+    /* 3) type = GL_FLOAT because we are working with floats. */
+    /* 5) stride = the amount of bytes between each vertex, which is the size of the vertex position plus the size of the texture coordinate plus the size of the normal. */
+    /* 6) pointer = pointer into the actual attribute. */
+    /*    The offset for the position will be 0, the offset for the texture coordinate will be 12, and the offset for the normal will be 20. */
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
 
     /* We now need to give data to the buffer. This can be done either by directly giving data to the buffer */
     /* or we can give it nothing and later pass the data. We are going to provide data straighaway. */
