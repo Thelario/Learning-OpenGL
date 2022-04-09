@@ -1,6 +1,47 @@
 #include <GL/glew.h> // We need to include glew.h before any OpenGL .h file
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <fstream>
+#include <string>
+#include <sstream>
+
+struct ShaderProgramSource
+{
+    std::string VertexSource;
+    std::string FragmentSource;
+};
+
+static ShaderProgramSource ParseShader(const std::string& filepath)
+{
+    std::ifstream stream(filepath);
+
+    enum class ShaderType { NONE = -1, VERTEX = 0, FRAGMENT = 1 };
+
+    std::string line;
+    std::stringstream ss[2];
+    ShaderType type = ShaderType::NONE;
+
+    while (getline(stream, line))
+    {
+        if (line.find("#shader") != std::string::npos)
+        {
+            if (line.find("vertex") != std::string::npos)
+            {
+                type = ShaderType::VERTEX;
+            }
+            else if (line.find("fragment") != std::string::npos)
+            {
+                type = ShaderType::FRAGMENT;
+            }
+        }
+        else
+        {
+            ss[(int)type] << line << '\n';
+        }
+    }
+
+    return { ss[0].str(), ss[1].str() };
+}
 
 static unsigned int CompileShader(unsigned int type, const std::string& source)
 {
@@ -120,10 +161,17 @@ int main(void)
     /* These are going to be the vertices of the triangle. */
     /* Vertices may contain way more data than just the position. */
     /* When talking about the position, we will be talking about Vertex Position, not only about Vertex. */
-    float positions[6] = {
+    float positions[8] = {
         -0.5f, -0.5f,
-         0.0f,  0.5f,
-         0.5f, -0.5f
+         0.5f, -0.5f,
+         0.5f,  0.5f,
+        -0.5f, 0.5f
+    };
+
+    /* These indices are the ones that we will be using to draw the rectangle, indicating the different vertices. */
+    unsigned int indices[6] = {
+        0, 1, 2,
+        2, 3, 0
     };
 
     /* In this case, we are returning 1 buffer object into buffer. */
@@ -152,30 +200,17 @@ int main(void)
 
     /* We now need to give data to the buffer. This can be done either by directly giving data to the buffer */
     /* or we can give it nothing and later pass the data. We are going to provide data straighaway. */
-    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), &positions, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float), positions, GL_STATIC_DRAW);
+
+    /* Sending the indices data to the gpu. */
+    unsigned int ibo;
+    glGenBuffers(1, &ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
 
     /* Creating a shader */
-    std::string vertexShader = 
-        "#version 330 core\n";
-        "\n"
-        "layout(location = 0) in vec4 position;\n"
-        "\n"
-        "void main()\n"
-        "{\n"
-        "    gl_Position = position;\n"
-        "}\n";
-
-    std::string fragmentShader = 
-        "#version 330 core\n"
-        "\n"
-        "layout(location = 0) out vec4 color;\n"
-        "\n"
-        "void main()\n"
-        "{\n"
-        "   color = vec4(1.0f, 0.0f, 0.0f, 1.0f);\n"
-        "}\n";
-
-    unsigned int shader = CreateShader(vertexShader, fragmentShader);
+    ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
+    unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
     glUseProgram(shader); // glUseProgram installs the program object specified by program as part of current rendering state
 
 #pragma endregion
@@ -192,10 +227,10 @@ int main(void)
 
         /* We can draw in two different ways: */
         /* 1) glDrawArrays: we use this if we do not have an IndexBuffer. */
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        // glDrawArrays(GL_TRIANGLES, 0, 3);
 
         /* 2) glDrawElements: we use this if we have an IndexBuffer. */
-        /* glDrawElements(); */
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
         /* How does OpenGL know that it has to draw the triangle specified before? */
         /* OpenGL will draw whatever is currently bound. In our case, we called to */
