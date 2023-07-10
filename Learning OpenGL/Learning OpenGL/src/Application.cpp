@@ -145,12 +145,15 @@ static unsigned int CreateShader(const std::string& vertexShader, const std::str
 
 int main(void)
 {
-
     GLFWwindow* window;
 
     /* Initialize the library */
     if (!glfwInit())
         return -1;
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     /* Create a windowed mode window and its OpenGL context */
     window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
@@ -198,6 +201,11 @@ int main(void)
         2, 3, 0
     };
 
+    /* Vertex Array Object */
+    unsigned int vao;
+    GLCall(glGenVertexArrays(1, &vao));
+    GLCall(glBindVertexArray(vao));
+
     /* In this case, we are returning 1 buffer object into buffer. */
     unsigned int buffer;
     GLCall(glGenBuffers(1, &buffer));
@@ -224,7 +232,7 @@ int main(void)
 
     /* We now need to give data to the buffer. This can be done either by directly giving data to the buffer */
     /* or we can give it nothing and later pass the data. We are going to provide data straighaway. */
-    GLCall(glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float), positions, GL_STATIC_DRAW));
+    GLCall(glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(float), positions, GL_STATIC_DRAW));
 
     /* Sending the indices data to the gpu. */
     unsigned int ibo;
@@ -241,6 +249,11 @@ int main(void)
     ASSERT(location != -1);
     GLCall(glUniform4f(0, 1.0f, 0.5f, 0.5f, 1.0f));
 
+    GLCall(glBindVertexArray(0));
+    GLCall(glUseProgram(0));
+    GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
+    GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
+
     float r = 0.0f;
     float increment = 0.05f;
 
@@ -250,9 +263,12 @@ int main(void)
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
-        /* We are going to change color over time of our rectangle. */
-        GLCall(glUniform4f(0, r, 0.5f, 0.5f, 1.0f));
+        GLCall(glUseProgram(shader)); // We bind our shader
+        GLCall(glUniform4f(0, r, 0.5f, 0.5f, 1.0f)); // We setup our uniform
+        GLCall(glBindVertexArray(vao));
+        GLCall(glBindBuffer(GL_ARRAY_BUFFER, buffer)); // We bind our vertex buffer
 
+        /* We are going to change color over time of our rectangle. */
         r += increment;
         if (r >= 1.0f)
             increment *= -1.0f;
